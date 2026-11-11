@@ -1,0 +1,9 @@
+rose-study-ai/
+│
+├── index.html
+│
+├── backend/
+│   ├── main.py
+│   └── requirements.txt
+│
+└── README.md
