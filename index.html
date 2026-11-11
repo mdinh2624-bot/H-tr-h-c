@@ -1,0 +1,389 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rose Study AI</title>
+<style>
+*{box-sizing:border-box}
+:root{
+ --bg:#10101c;--glass:rgba(255,255,255,.075);
+ --line:rgba(255,255,255,.13);
+ --purple:#c4a2ff;--blue:#83c5ff;
+}
+body{
+ margin:0;height:100dvh;color:white;
+ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+ background:
+ radial-gradient(at 10% 10%,#49316b,transparent 40%),
+ radial-gradient(at 90% 90%,#164b70,transparent 40%),
+ #10101c;
+}
+button,input,textarea{font:inherit}
+button{cursor:pointer;color:white}
+.app{display:flex;height:100dvh;padding:12px;gap:12px}
+.glass{
+ background:var(--glass);
+ border:1px solid var(--line);
+ backdrop-filter:blur(25px);
+ -webkit-backdrop-filter:blur(25px);
+ box-shadow:0 12px 40px #0003;
+}
+.sidebar{
+ width:245px;flex-shrink:0;border-radius:23px;
+ padding:20px;display:flex;flex-direction:column;
+}
+.logo{
+ font-size:25px;font-weight:800;
+ background:linear-gradient(90deg,#e1c5ff,#83c5ff);
+ color:transparent;background-clip:text;
+}
+.subtitle{font-size:11px;color:#aaa;margin-top:5px}
+.new{
+ margin-top:25px;padding:13px;border:0;
+ border-radius:14px;background:#ffffff18;
+}
+.history{flex:1;overflow:auto;margin-top:15px}
+.history button{
+ width:100%;text-align:left;padding:11px;
+ border:0;border-radius:10px;background:transparent;
+ color:#ccc;margin-bottom:5px;
+}
+.history button:hover{background:#ffffff13}
+.main{
+ flex:1;min-width:0;display:flex;
+ flex-direction:column;border-radius:23px;overflow:hidden;
+}
+header{
+ height:65px;display:flex;align-items:center;
+ justify-content:space-between;padding:0 20px;
+ border-bottom:1px solid var(--line);
+}
+.status{font-size:12px;color:#bca4ff}
+.chat{
+ flex:1;overflow:auto;padding:20px;
+ display:flex;flex-direction:column;gap:15px;
+}
+.welcome{margin:auto;text-align:center;max-width:500px}
+.welcome h1{
+ font-size:clamp(30px,5vw,45px);
+ background:linear-gradient(90deg,#e4c8ff,#82c5ff);
+ color:transparent;background-clip:text;
+}
+.welcome p{color:#aaa;line-height:1.7}
+.message{
+ max-width:85%;padding:14px 17px;
+ border-radius:17px;white-space:pre-wrap;
+ overflow-wrap:anywhere;line-height:1.7;
+}
+.user{
+ align-self:flex-end;
+ background:linear-gradient(130deg,#805ab855,#417ac455);
+ border:1px solid #bca4ff35;
+}
+.ai{
+ align-self:flex-start;background:#ffffff0e;
+ border:1px solid var(--line);
+}
+.ai strong{color:#d0b6ff}
+.tools{
+ display:flex;flex-wrap:wrap;justify-content:center;
+ gap:8px;padding:10px;
+}
+.tools button,.mode button{
+ border:1px solid var(--line);
+ background:#ffffff0b;border-radius:25px;
+ padding:9px 13px;font-size:12px;
+}
+.tools button:hover,.mode button.active{
+ background:#a77aff35;border-color:#c2a0ff;
+}
+.mode{
+ display:flex;flex-wrap:wrap;justify-content:center;
+ gap:7px;padding:8px;
+}
+.composer{
+ display:flex;gap:8px;padding:9px;
+ margin:5px auto 15px;width:min(850px,95%);
+ border-radius:20px;background:#ffffff13;
+ border:1px solid var(--line);
+}
+.composer textarea{
+ flex:1;min-width:0;resize:none;max-height:120px;
+ border:0;outline:none;background:transparent;
+ color:white;padding:12px;
+}
+.composer textarea::placeholder{color:#999}
+.send{
+ border:0;border-radius:15px;padding:0 20px;
+ background:linear-gradient(130deg,#d1aaff,#83baff);
+ color:#21152f;font-weight:bold;
+}
+.preview{
+ max-width:180px;max-height:130px;
+ border-radius:12px;margin:8px 0;object-fit:contain;
+}
+.footer{text-align:center;font-size:10px;color:#777;padding-bottom:9px}
+@media(max-width:650px){
+ .app{padding:0}
+ .sidebar{display:none}
+ .main{border-radius:0}
+ header{height:58px}
+ .chat{padding:13px}
+ .message{max-width:95%}
+ .composer{margin-bottom:9px}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<aside class="sidebar glass">
+ <div class="logo">🌸 Rose Study AI</div>
+ <div class="subtitle">YOUR PERSONAL AI TEACHER</div>
+ <button class="new" onclick="newChat()">＋ Cuộc trò chuyện mới</button>
+ <h4>📚 Lịch sử học tập</h4>
+ <div class="history" id="history"></div>
+ <small class="subtitle">Rose Study AI v1.0</small>
+</aside>
+
+<main class="main glass">
+<header>
+ <b>🌸 Rose Study AI</b>
+ <span class="status" id="status">● Sẵn sàng</span>
+</header>
+
+<section class="chat" id="chat">
+ <div class="welcome" id="welcome">
+  <div style="font-size:55px">🌸</div>
+  <h1>Học thông minh hơn!</h1>
+  <p>Xin chào! Tôi là Rose Study AI.</p>
+  <p>Hãy gửi bài tập hoặc đặt câu hỏi để bắt đầu học.</p>
+  <p>📚 Toán · Văn · Anh · Sử · Địa · Tin học</p>
+ </div>
+</section>
+
+<div class="mode">
+ <button class="active" data-mode="tutor">🧠 Gia sư</button>
+ <button data-mode="solve">✏️ Giải bài</button>
+ <button data-mode="quiz">📝 Kiểm tra</button>
+ <button data-mode="summary">📖 Tóm tắt</button>
+ <button data-mode="code">💻 Lập trình</button>
+</div>
+
+<div class="tools">
+ <button onclick="document.getElementById('file').click()">🖼 Gửi ảnh</button>
+ <button onclick="voice()">🎙 Giọng nói</button>
+ <button onclick="speak()">🔊 Đọc đáp án</button>
+ <button onclick="clearInput()">🗑 Xóa nhập</button>
+</div>
+
+<div id="imagePreview" style="text-align:center"></div>
+
+<form class="composer" id="form">
+ <textarea id="prompt" rows="1"
+ placeholder="Nhập bài tập hoặc câu hỏi của bạn..."></textarea>
+ <button class="send">➤</button>
+</form>
+
+<input id="file" type="file" accept="image/*" hidden>
+<div class="footer">Rose Study AI · Học tập cùng trí tuệ nhân tạo</div>
+</main>
+</div>
+
+<script>
+const chat=document.getElementById("chat");
+const input=document.getElementById("prompt");
+const statusEl=document.getElementById("status");
+
+let mode="tutor";
+let imageData=null;
+let lastAnswer="";
+let historyData=[];
+
+try {
+ historyData=JSON.parse(localStorage.getItem("study_history")||"[]");
+ if(!Array.isArray(historyData))historyData=[];
+} catch { historyData=[]; }
+
+const instructions={
+ tutor:"Bạn là gia sư AI. Hãy giải thích kiến thức dễ hiểu, có ví dụ phù hợp với học sinh.",
+ solve:"Bạn là giáo viên. Hãy giải bài tập chính xác, trình bày dữ kiện, phương pháp, từng bước giải và đáp án.",
+ quiz:"Bạn là giáo viên. Hãy tạo bài kiểm tra theo yêu cầu, có câu hỏi và đáp án ở phần riêng.",
+ summary:"Bạn là trợ lý học tập. Hãy tóm tắt nội dung thành các ý chính, dễ ghi nhớ.",
+ code:"Bạn là chuyên gia lập trình. Hãy viết code, giải thích, tìm lỗi và đưa ra phiên bản sửa hoàn chỉnh."
+};
+
+document.querySelectorAll(".mode button").forEach(btn=>{
+ btn.onclick=()=>{
+  document.querySelectorAll(".mode button")
+   .forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  mode=btn.dataset.mode;
+ };
+});
+
+function addMessage(text,type){
+ const div=document.createElement("div");
+ div.className="message "+type;
+ div.textContent=text;
+ chat.appendChild(div);
+ chat.scrollTop=chat.scrollHeight;
+ return div;
+}
+
+function renderHistory(){
+ const box=document.getElementById("history");
+ box.innerHTML="";
+ historyData.forEach((item,index)=>{
+  const b=document.createElement("button");
+  b.textContent="💬 "+item.question.slice(0,25);
+  b.onclick=()=>{
+   chat.innerHTML="";
+   addMessage(item.question,"user");
+   addMessage(item.answer,"ai");
+   lastAnswer=item.answer;
+  };
+  box.appendChild(b);
+ });
+}
+
+function saveHistory(){
+ try{
+  localStorage.setItem("study_history",JSON.stringify(historyData));
+ }catch(e){console.log(e)}
+ renderHistory();
+}
+
+function newChat(){
+ chat.innerHTML=`
+ <div class="welcome" id="welcome">
+ <div style="font-size:55px">🌸</div>
+ <h1>Học thông minh hơn!</h1>
+ <p>Hãy bắt đầu bài học mới.</p>
+ </div>`;
+ lastAnswer="";
+ imageData=null;
+ document.getElementById("imagePreview").innerHTML="";
+ input.value="";
+}
+
+function clearInput(){
+ input.value="";
+ imageData=null;
+ document.getElementById("imagePreview").innerHTML="";
+}
+
+document.getElementById("file").onchange=async e=>{
+ const file=e.target.files[0];
+ if(!file)return;
+ if(file.size>5*1024*1024){
+  alert("Ảnh tối đa 5MB.");
+  e.target.value="";
+  return;
+ }
+ if(!file.type.startsWith("image/"))return;
+
+ imageData=await new Promise((resolve,reject)=>{
+  const reader=new FileReader();
+  reader.onload=()=>resolve(reader.result);
+  reader.onerror=reject;
+  reader.readAsDataURL(file);
+ });
+
+ document.getElementById("imagePreview").innerHTML=
+  `<img class="preview" src="${imageData}" alt="Ảnh bài tập">`;
+ e.target.value="";
+};
+
+document.getElementById("form").onsubmit=async e=>{
+ e.preventDefault();
+ const question=input.value.trim();
+ if(!question&&!imageData)return;
+
+ document.getElementById("welcome")?.remove();
+
+ const image=imageData;
+ const selectedMode=mode;
+ const userText=question||"Hãy phân tích ảnh bài tập này.";
+
+ addMessage(userText,"user");
+ if(image){
+  const img=document.createElement("img");
+  img.src=image;
+  img.className="preview";
+  chat.appendChild(img);
+ }
+
+ input.value="";
+ imageData=null;
+ document.getElementById("imagePreview").innerHTML="";
+
+ const loading=addMessage("🌸 Rose AI đang suy nghĩ...","ai");
+ statusEl.textContent="● Đang xử lý";
+
+ try{
+  const response=await fetch("/api/chat",{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({
+    message:userText,
+    mode:selectedMode,
+    system_instruction:instructions[selectedMode],
+    image:image,
+    use_search:false
+   })
+  });
+
+  const data=await response.json();
+  if(!response.ok)throw new Error(data.error||"Lỗi API");
+
+  const answer=data.reply||"AI chưa trả lời.";
+  loading.textContent=answer;
+  lastAnswer=answer;
+
+  historyData.unshift({
+   question:userText,
+   answer:answer,
+   mode:selectedMode
+  });
+  historyData=historyData.slice(0,50);
+  saveHistory();
+
+  statusEl.textContent="● Sẵn sàng";
+ }catch(error){
+  loading.textContent=
+   "⚠️ Không kết nối được AI.\n"+
+   "Hãy kiểm tra backend tại /api/chat.\n"+
+   "Lỗi: "+error.message;
+  statusEl.textContent="● Mất kết nối";
+ }
+ chat.scrollTop=chat.scrollHeight;
+};
+
+function speak(){
+ if(!lastAnswer)return alert("Chưa có đáp án.");
+ if(!window.speechSynthesis)return alert("Không hỗ trợ đọc.");
+ speechSynthesis.cancel();
+ const s=new SpeechSynthesisUtterance(lastAnswer);
+ s.lang="vi-VN";
+ speechSynthesis.speak(s);
+}
+
+function voice(){
+ const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!Speech)return alert("Trình duyệt chưa hỗ trợ nhận diện giọng nói.");
+ const r=new Speech();
+ r.lang="vi-VN";
+ r.onresult=e=>{
+  input.value=e.results[0][0].transcript;
+ };
+ r.start();
+}
+
+renderHistory();
+</script>
+</body>
+</html>
